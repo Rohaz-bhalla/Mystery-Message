@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
+import { signIn } from "next-auth/react"
 
 export default function SignUpForm() { 
     const [ username, setUsername ] = useState('')
@@ -71,11 +72,13 @@ export default function SignUpForm() {
     setIsSubmitting(true)
 
     try {
-        const response = await axios.post('/api/sign-up',data)
+      const response = await axios.post('/api/sign-up',data)
+      
+      toast.success('Sign-up Successfull'+ (response.data.message ?? ''))
 
-        toast.success('Sign-up Succesfull'+ response.data.message)
-
+      setTimeout(()=>{
         router.replace(`/verify/${username}`)
+      },1500)
 
         setIsSubmitting(false)
 
@@ -94,7 +97,7 @@ export default function SignUpForm() {
         setIsSubmitting(false)
         
     }
-
+    
  }
 
  return(
@@ -140,7 +143,7 @@ export default function SignUpForm() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <Input {...field} name="email" />
-                  <p className='text-muted text-gray-400 text-sm'>We will send you a verification code</p>
+                  <p className=' text-black text-sm'>We will send you a verification code</p>
                   <FormMessage />
                 </FormItem>
               )}
@@ -168,6 +171,16 @@ export default function SignUpForm() {
                 'Sign Up'
               )}
             </Button>
+
+            <br></br>
+            <Button
+               type="button"
+               variant="outline"
+               className="w-full"
+               onClick={() => signIn('github', { callbackUrl: '/dashboard' })}
+             >
+               Continue with GitHub
+             </Button>
       </form>
     </Form>
 

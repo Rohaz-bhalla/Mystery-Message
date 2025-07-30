@@ -20,84 +20,91 @@ import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import { signIn } from "next-auth/react"
 
-export default function SignInForm() { 
-    const router = useRouter()
+export default function SignInForm() {
+  const router = useRouter();
 
-    const form = useForm< z.infer<typeof SignInSchema> >({
-        resolver : zodResolver(SignInSchema),
-        defaultValues : {
-          identifier : '',
-            password : '',
-        }
-    })
+  const form = useForm<z.infer<typeof SignInSchema>>({
+    resolver: zodResolver(SignInSchema),
+    defaultValues: {
+      identifier: '',
+      password: '',
+    },
+  });
 
-    const onSubmit = async (data : z.infer<typeof SignInSchema>) => {
+  const onSubmit = async (data: z.infer<typeof SignInSchema>) => {
+    const result = await signIn('credentials', {
+      redirect: false,
+      identifier: data.identifier,
+      password: data.password,
+    });
 
-   const result = await signIn('credentials',{
-    redirect : false,
-    identifier : data.identifier,
-    password : data.password,
-   })
-
-   if(result?.error){
-    if(result.error === 'CredentialsSignin'){
-      toast.error('Login failed, Incorrect username or password')
-    }else{
-      toast.error('Error' + result.error)
+    if (result?.error) {
+      if (result.error === 'CredentialsSignin') {
+        toast.error('Login failed');
+      } else {
+        toast.success('Error');
+      }
     }
-   }
 
-   if(result?.url){
-    router.replace('/dashboard')
-   }
+    if (result?.url) {
+      toast.success('Login Succesfull')
 
- }
+      setTimeout(()=>{
+        router.replace('/dashboard');
+      })
+    }
+  };
 
- return(
-    <>
-    <div className="flex justify-center items-center min-h-screen bg-gray-600">
-        <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
-            <div className="text-center">
-                <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6">
-                    Welcome Back
-                </h1>
-
-                 <p className="mb-4">Sign-in to continue your secret conversations</p>
-
-            </div>
-
+  return (
+    <div className="flex justify-center items-center min-h-screen bg-gray-800">
+      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+        <div className="text-center">
+          <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6">
+            Welcome Back to True Feedback
+          </h1>
+          <p className="mb-4">Sign in to continue your secret conversations</p>
+        </div>
         <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="identifier"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email/Username</FormLabel>
-              <Input {...field} />
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-           <FormField
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              name="identifier"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email/Username</FormLabel>
+                  <Input {...field} />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
               name="password"
               control={form.control}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Password</FormLabel>
-                  <Input {...field} type="password" name="password" />
+                  <Input type="password" {...field} />
                   <FormMessage />
                 </FormItem>
               )}
             />
-        
-            <Button type="submit" className='w-full'>
-              Sign In
-            </Button>
-      </form>
-    </Form>
-    <div className="text-center mt-4">
+            <Button className='w-full' type="submit">Sign In</Button>
+            <br></br>
+            <hr></hr>
+            <Button
+               type="button"
+               variant="outline"
+               className="w-full"
+               onClick={() => signIn('github', { callbackUrl: '/dashboard' })}
+>
+               Continue with GitHub
+                </Button>
+                
+          </form>
+        </Form>
+        <div className="text-center mt-4">
+                {/* <Button onClick={() => toast('My first toast')}>hlo</Button> */}
+
           <p>
             Not a member yet?{' '}
             <Link href="/sign-up" className="text-blue-600 hover:text-blue-800">
@@ -105,10 +112,7 @@ export default function SignInForm() {
             </Link>
           </p>
         </div>
-        </div>
+      </div>
     </div>
-    </>
- )
-
+  );
 }
-

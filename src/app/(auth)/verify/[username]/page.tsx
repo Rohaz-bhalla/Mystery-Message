@@ -39,7 +39,7 @@ export default function VerifyUser() {
 
             toast.success('Success' + response.data.message)
 
-            router.replace('sign-in')
+            router.replace('/sign-in')
             
         } catch (error) {
             const axiosError = error as AxiosError <ApiResponse>
