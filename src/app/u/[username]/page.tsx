@@ -22,12 +22,6 @@ import {
 import { Input } from "@/components/ui/input"
 import { Loader2 } from 'lucide-react';
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card"
-import { Separator } from '@radix-ui/react-separator';
 import Link from 'next/link';
 
 const specialChar = '||';
