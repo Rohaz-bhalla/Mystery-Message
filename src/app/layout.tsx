@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/context/authProvider";
 import { Toaster } from "sonner";
+import MyNavbar from "@/components/MyNavbar";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,19 +27,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <AuthProvider>
-
-      <body
-      
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-                <Toaster richColors position="bottom-right"/>
-
-        {children}
+   <html lang="en" suppressHydrationWarning>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        {/* ✅ ThemeProvider must wrap everything that needs access to dark mode */}
+        
+          {/* ✅ AuthProvider now inside ThemeProvider */}
+          <AuthProvider>
+            <MyNavbar />
+            <Toaster richColors position="bottom-right" />
+            {children}
+          </AuthProvider>
       </body>
-      
-        </AuthProvider>
     </html>
   );
 }

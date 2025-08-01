@@ -56,8 +56,36 @@ export const authOptions: NextAuthOptions = {
   ],
   
   callbacks: {
+
+    async signIn({account, user}) {
+    await dbConnect()
+
+    if( account?.provider === 'github' ){
+      const existinguser = await UserModel.findOne({email : user.email})
+
+      if(existinguser){
+        if(!existinguser.isVerified){
+          existinguser.isVerified = true
+          await existinguser.save()
+        }
+      }else{
+        await UserModel.create({
+          email : user.email,
+          username: user.name?.replace(/\s/g, '').toLowerCase() || user.email?.split('@')[0],
+          isVerified: true,
+          isAcceptingMessages: true,
+        })
+      }
+    }
+
+    return true
+
+    },
+
+
     async jwt({ token, user }) {
       if (user) {
+        if (user) token.id = user._id;
         token._id = user._id?.toString(); // Convert ObjectId to string
         token.isVerified = user.isVerified;
         token.isAcceptingMessages = user.isAcceptingMessages;

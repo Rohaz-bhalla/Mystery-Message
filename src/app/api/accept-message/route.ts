@@ -6,15 +6,14 @@ import { User } from 'next-auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
-  // Connect to the database
   await dbConnect();
 
   const session = await getServerSession(authOptions);
-  const user : User = session?.user;
+  const user: User = session?.user as User;
+
   if (!session || !session.user) {
     return NextResponse.json(
-      { success: false, 
-        message: 'Not authenticated' },
+      { success: false, message: 'Not authenticated' },
       { status: 401 }
     );
   }
@@ -23,8 +22,6 @@ export async function POST(request: NextRequest) {
   const { acceptMessages } = await request.json();
 
   try {
-    // Update the user's message acceptance status
-
     const updatedUser = await UserModel.findByIdAndUpdate(
       userId,
       { isAcceptingMessages: acceptMessages },
@@ -32,7 +29,6 @@ export async function POST(request: NextRequest) {
     );
 
     if (!updatedUser) {
-      // User not found
       return NextResponse.json(
         {
           success: false,
@@ -42,7 +38,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Successfully updated message acceptance status
     return NextResponse.json(
       {
         success: true,
@@ -61,47 +56,40 @@ export async function POST(request: NextRequest) {
   }
 }
 
-
 export async function GET(request: NextRequest) {
-  // Connect to the database
   await dbConnect();
 
-  // Get the user session
   const session = await getServerSession(authOptions);
   const user = session?.user;
 
-  // Check if the user is authenticated
   if (!session || !user) {
-    return Response.json(
+    return NextResponse.json(
       { success: false, message: 'Not authenticated' },
       { status: 401 }
     );
   }
 
   try {
-    // Retrieve the user from the database using the ID
     const foundUser = await UserModel.findById(user._id);
 
     if (!foundUser) {
-      // User not found
-      return Response.json(
+      return NextResponse.json(
         { success: false, message: 'User not found' },
         { status: 404 }
       );
     }
 
-    // Return the user's message acceptance status
-    return Response.json(
+    return NextResponse.json(
       {
         success: true,
         isAcceptingMessages: foundUser.isAcceptingMessages,
       },
       { status: 200 }
     );
-    
+
   } catch (error) {
     console.error('Error retrieving message acceptance status:', error);
-    return Response.json(
+    return NextResponse.json(
       { success: false, message: 'Error retrieving message acceptance status' },
       { status: 500 }
     );

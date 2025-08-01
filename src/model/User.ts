@@ -1,32 +1,33 @@
-import mongoose, {Schema, Document} from 'mongoose'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import mongoose, { Schema, Document } from 'mongoose';
 
-export interface Message extends Document{
-    content : string;
-    createdAt : Date;
+export interface Message {
+  _id: any;
+  content: string;
+  createdAt: Date;
 }
 
-const messageSchema : Schema<Message> = new mongoose.Schema({
-    content : {
-        type : String,
-        required : true,
-    },
+const messageSchema: Schema<Message> = new mongoose.Schema({
+  content: {
+    type: String,
+    required: true,
+  },
+  createdAt: {
+    type: Date,
+    required: true,
+    default: Date.now,
+  },
+});
 
-    createdAt : {
-        type : Date,
-        required : true,
-        default : Date.now,
-    },
-})
-
-export interface User extends Document{
-    username : string;
-    email : string;
-    password : string;
-    verifyCode : string;
-    verifyCodeExpiry : Date;
-    isVerified : boolean;
-    isAcceptingMessages : boolean;
-    messages : Message[]
+export interface User extends Document {
+  username: string;
+  email: string;
+  password: string;
+  verifyCode: string;
+  verifyCodeExpiry: Date;
+  isVerified: boolean;
+  isAcceptingMessages: boolean;
+  messages: Message[];
 }
 
 const UserSchema: Schema<User> = new mongoose.Schema({

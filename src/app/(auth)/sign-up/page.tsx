@@ -52,7 +52,7 @@ export default function SignUpForm() {
                 try {
                     
                     const response = await axios.get<ApiResponse>(`/api/check-username-unique?username=${username}`)
-                    setUsernameMessage(response.data.message)
+                    setUsernameMessage(response.data.message ?? '')
 
                 } catch (error) {
                     const axiosError = error as AxiosError<ApiResponse>
@@ -102,7 +102,7 @@ export default function SignUpForm() {
 
  return(
     <>
-    <div className="flex justify-center items-center min-h-screen bg-gray-600">
+    <div className="flex justify-center items-center min-h-screen bg-gray-800">
         <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
             <div className="text-center">
                 <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6">
@@ -143,7 +143,9 @@ export default function SignUpForm() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <Input {...field} name="email" />
-                  <p className=' text-black text-sm'>We will send you a verification code</p>
+                  <p className=' text-black text-sm'>1.We will send you a verification code📩</p>
+                  <p className=' text-black text-sm'>2.To get verification code you must first create an account on <Link href={'https://resend.com/signup'}>➡️resend.com</Link></p>
+
                   <FormMessage />
                 </FormItem>
               )}

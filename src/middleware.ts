@@ -16,6 +16,7 @@ export async function middleware(request: NextRequest) {
   // and trying to access sign-in, sign-up, or home page
 
   if(
+    // false&&  //should be removed
     token &&
     (
         url.pathname.startsWith('/(auth)/sign-in')||
