@@ -7,15 +7,16 @@ import { User } from 'next-auth';
 
 export async function DELETE(
   request: NextRequest,
-  context: { params: { messageid: string } } // ✅ inline type here
+  context: { params: Promise<{ messageid: string }> } // ✅ Changed to Promise
 ) {
-  const { messageid } = context.params;
+  // ✅ Await the params
+  const { messageid } = await context.params;
 
   await dbConnect();
   const session = await getServerSession(authOptions);
-  const _user = session?.user as User;
+  const user = session?.user as User; // ✅ Removed underscore prefix
 
-  if (!session || !_user) {
+  if (!session || !user) {
     return NextResponse.json(
       { success: false, message: 'Not Authenticated' },
       { status: 401 }
@@ -24,7 +25,7 @@ export async function DELETE(
 
   try {
     const updateResult = await UserModel.updateOne(
-      { _id: _user._id },
+      { _id: user._id }, // ✅ Updated variable name
       { $pull: { messages: { _id: messageid } } }
     );
 
