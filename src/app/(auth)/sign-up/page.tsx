@@ -144,8 +144,6 @@ export default function SignUpForm() {
                   <FormLabel>Email</FormLabel>
                   <Input {...field} name="email" />
                   <p className=' text-black text-sm'>1.We will send you a verification code📩</p>
-                  <p className=' text-black text-sm'>2.To get verification code you must first create an account on <Link href={'https://resend.com/signup'}>➡️resend.com</Link></p>
-
                   <FormMessage />
                 </FormItem>
               )}
