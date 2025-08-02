@@ -6,16 +6,14 @@ import dbConnect from '@/lib/dbConnect';
 import UserModel from '@/model/User';
 import GitHubProvider from "next-auth/providers/github";
 
-
 export const authOptions: NextAuthOptions = {
-    
+  debug: true, // Add debug logging
+  
   providers: [
-
-  GitHubProvider({
-    clientId: process.env.GITHUB_ID!,
-    clientSecret: process.env.GITHUB_SECRET!
-  }),
-
+    GitHubProvider({
+      clientId: process.env.GITHUB_ID!,
+      clientSecret: process.env.GITHUB_SECRET!
+    }),
 
     CredentialsProvider({
       id: 'credentials',
@@ -56,43 +54,53 @@ export const authOptions: NextAuthOptions = {
   ],
   
   callbacks: {
+    async signIn({ account, user }) {
+      console.log('SignIn callback triggered:', { account: account?.provider, userEmail: user?.email });
+      
+      try {
+        await dbConnect();
 
-    async signIn({account, user}) {
-    await dbConnect()
+        if (account?.provider === 'github') {
+          console.log('Processing GitHub OAuth for:', user?.email);
+          
+          const existingUser = await UserModel.findOne({ email: user.email });
 
-    if( account?.provider === 'github' ){
-      const existinguser = await UserModel.findOne({email : user.email})
-
-      if(existinguser){
-        if(!existinguser.isVerified){
-          existinguser.isVerified = true
-          await existinguser.save()
+          if (existingUser) {
+            console.log('Existing user found, updating verification status');
+            if (!existingUser.isVerified) {
+              existingUser.isVerified = true;
+              await existingUser.save();
+              console.log('User verification status updated');
+            }
+          } else {
+            console.log('Creating new user for GitHub OAuth');
+            const newUser = await UserModel.create({
+              email: user.email,
+              username: user.name?.replace(/\s/g, '').toLowerCase() || user.email?.split('@')[0],
+              isVerified: true,
+              isAcceptingMessages: true,
+            });
+            console.log('New user created:', newUser._id);
+          }
         }
-      }else{
-        await UserModel.create({
-          email : user.email,
-          username: user.name?.replace(/\s/g, '').toLowerCase() || user.email?.split('@')[0],
-          isVerified: true,
-          isAcceptingMessages: true,
-        })
+
+        return true;
+      } catch (error) {
+        console.error('Error in signIn callback:', error);
+        return false; // This will cause the sign-in to fail gracefully
       }
-    }
-
-    return true
-
     },
-
 
     async jwt({ token, user }) {
       if (user) {
-        if (user) token.id = user._id;
-        token._id = user._id?.toString(); // Convert ObjectId to string
+        token._id = user._id?.toString();
         token.isVerified = user.isVerified;
         token.isAcceptingMessages = user.isAcceptingMessages;
         token.username = user.username;
       }
       return token;
     },
+    
     async session({ session, token }) {
       if (token) {
         session.user._id = token._id;
@@ -103,10 +111,13 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
+  
   session: {
     strategy: 'jwt',
   },
+  
   secret: process.env.NEXTAUTH_SECRET,
+  
   pages: {
     signIn: '/sign-in',
   },
