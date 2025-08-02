@@ -6,29 +6,68 @@ import { authOptions } from "../auth/[...nextauth]/options";
 import mongoose from "mongoose";
 
 export async function GET() {
-  await dbConnect();
+  try {
+    await dbConnect();
 
-  const session = await getServerSession(authOptions);
-  const _user = session?.user as { _id?: string };
+    const session = await getServerSession(authOptions);
+    const user = session?.user as { _id?: string; email?: string };
 
-  if (!session || !_user?._id) {
-    return NextResponse.json({ success: false, message: "Not authenticated" }, { status: 401 });
+    // Debug logging
+    console.log('Get messages - Session exists:', !!session);
+    console.log('Get messages - User ID:', user?._id);
+    console.log('Get messages - User email:', user?.email);
+
+    if (!session || !user) {
+      return NextResponse.json({ 
+        success: false, 
+        message: "Not authenticated - no session" 
+      }, { status: 401 });
+    }
+
+    if (!user._id) {
+      return NextResponse.json({ 
+        success: false, 
+        message: "Not authenticated - no user ID in session" 
+      }, { status: 401 });
+    }
+
+    // Validate ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(user._id)) {
+      console.error('Invalid ObjectId format:', user._id);
+      return NextResponse.json({ 
+        success: false, 
+        message: "Invalid user ID format" 
+      }, { status: 400 });
+    }
+
+    const userId = new mongoose.Types.ObjectId(user._id);
+
+    console.log('Querying messages for user ID:', userId);
+
+    const result = await UserModel.aggregate([
+      { $match: { _id: userId } },
+      { $unwind: { path: "$messages", preserveNullAndEmptyArrays: true } },
+      { $sort: { "messages.createdAt": -1 } },
+      { $group: { _id: "$_id", messages: { $push: "$messages" } } },
+    ]);
+
+    console.log('Aggregate result:', result.length > 0 ? 'User found' : 'No user found');
+
+    const messages = result.length && result[0].messages ? result[0].messages.filter((msg: null) => msg !== null) : [];
+
+    console.log('Messages count:', messages.length);
+
+    return NextResponse.json({
+      success: true,
+      messages,
+      message: messages.length ? undefined : "No messages",
+    });
+
+  } catch (error) {
+    console.error('Error in get-message route:', error);
+    return NextResponse.json({
+      success: false,
+      message: "Internal server error",
+    }, { status: 500 });
   }
-
-  const userId = new mongoose.Types.ObjectId(_user._id);
-
-  const result = await UserModel.aggregate([
-    { $match: { _id: userId } },
-    { $unwind: { path: "$messages", preserveNullAndEmptyArrays: true } },
-    { $sort: { "messages.createdAt": -1 } },
-    { $group: { _id: "$_id", messages: { $push: "$messages" } } },
-  ]);
-
-  const messages = result.length ? result[0].messages : [];
-
-  return NextResponse.json({
-    success: true,
-    messages,
-    message: messages.length ? undefined : "No messages",
-  });
 }
