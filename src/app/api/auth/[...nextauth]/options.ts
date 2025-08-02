@@ -57,6 +57,13 @@ export const authOptions: NextAuthOptions = {
     async signIn({ account, user }) {
       console.log('SignIn callback triggered:', { account: account?.provider, userEmail: user?.email });
       
+      // Temporarily bypass database operations for testing
+      if (account?.provider === 'github') {
+        console.log('GitHub OAuth - temporarily allowing without database check');
+        return true;
+      }
+      
+      // Keep original logic for credentials
       try {
         await dbConnect();
 
@@ -87,7 +94,7 @@ export const authOptions: NextAuthOptions = {
         return true;
       } catch (error) {
         console.error('Error in signIn callback:', error);
-        return false; // This will cause the sign-in to fail gracefully
+        return false;
       }
     },
 
